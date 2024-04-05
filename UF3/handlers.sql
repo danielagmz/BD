@@ -1,3 +1,5 @@
+-- Exercici 1 
+
 use rrhh;
 
 DROP PROCEDURE IF EXISTS spCrearCopia;
