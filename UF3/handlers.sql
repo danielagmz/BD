@@ -31,3 +31,11 @@ BEGIN
 END
 
 // DELIMITER ;
+
+-- exercici 2
+
+CREATE TABLE categories ( 
+	codi CHAR(2) PRIMARY KEY, 
+	nom VARCHAR(30), 
+	quantitat SMALLINT UNSIGNED 
+);
