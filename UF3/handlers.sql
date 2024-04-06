@@ -39,3 +39,5 @@ CREATE TABLE categories (
 	nom VARCHAR(30), 
 	quantitat SMALLINT UNSIGNED 
 );
+
+
