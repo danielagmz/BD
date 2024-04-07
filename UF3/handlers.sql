@@ -103,8 +103,8 @@ BEGIN
 	END WHILE;
 
 	INSERT INTO categories(codi,nom,quantitat)
-    VALUES 	("C1","Auxiliar",vC1),
-			("C2","Oficial de Segona",vC2),
+    VALUES  ("C1","Auxiliar",vC1),
+	    ("C2","Oficial de Segona",vC2),
             ("C3","Oficial de Primera",vC3),
             ("C4","Que es jubili!",vC4);
 	CLOSE emp;
