@@ -1,3 +1,87 @@
+# enunciats de procediments
+
+-- Exercici 2
+DROP PROCEDURE IF EXISTS spSwapSou;
+DELIMITER //
+CREATE PROCEDURE spSwapSou (IN pEmpId1 INT ,IN pEmpId2 INT)
+BEGIN
+    DECLARE vT DECIMAL(8,2);
+    -- hay que comprobar que los id existan y tambien explicar paso a paso en lenguaje natural lo que se quiere lograr
+    SELECT salari INTO vT
+        FROM empleats
+    WHERE empleat_id=pEmpId1;
+
+    UPDATE empleats SET salari = (SELECT salari FROM empleats WHERE empleat_id=pEmpId2)
+         WHERE empleat_id=pEmpId1;
+    UPDATE empleats SET salari = vT
+         WHERE empleat_id=pEmpId2;
+END
+// DELIMITER ;
+
+-- Exercici 3
+DROP PROCEDURE IF EXISTS spSwapDep;
+DELIMITER //
+CREATE PROCEDURE spSwapDep (IN pEmpId1 INT ,IN pEmpId2 INT)
+BEGIN
+
+    DECLARE vT INT;
+
+    -- obtener el departamento del empleado 1 y guardarlo en la variable temporal
+    SELECT departament_id INTO vT 
+        FROM empleats 
+    WHERE empleat_id=pEmpId1;
+
+    -- asignarle al empleado dos el departamento id del empleado 1 (esta guardado en la variable vT)
+   UPDATE empleats
+        departament_id=vT;
+    WHERE empleat_id =pEmpId2;
+END
+// DELIMITER ;
+
+-- Exercici  4
+DROP PROCEDURE IF EXISTS spReasignarEmpleats;
+DELIMITER //
+CREATE PROCEDURE spReasignarEmpleats (IN pdep1 INT ,IN pdep2 INT)
+BEGIN
+    -- no hay que comprobarlo porque el update no hara nada si no se encuentra, si se podria comprobar que no se entre un null
+    UPDATE empleats
+        SET departament_id = pdep1 -- si este esta mal dara error de FK
+    WHERE departament_id = pdep2; -- si este esta mal no hara nada porque no hay coincidencia con los datos
+END
+// DELIMITER ;
+
+-- Exercici 5
+DROP PROCEDURE IF EXISTS spLlista;
+DELIMITER //
+CREATE PROCEDURE spLlista ()
+BEGIN
+    SELECT e.empleat_id as id_empleat,e.nom as nom_empleat,d.nom as nom_departament,l.ciutat as localitzacio_dept
+        FROM empleats e
+        LEFT JOIN departaments d ON e.departament_id = d.departament_id
+        LEFT JOIN localitzacions l ON d.localitzacio_id = l.localitzacio_id;
+
+END
+// DELIMITER ;
+
+-- Exercici 6
+
+DELIMITER //
+CREATE PROCEDURE spInfoEmp (IN pEmpcodi INT)
+BEGIN
+    SELECT *
+        FROM empleats
+    WHERE empleat_id = pEmpcodi;
+END
+// DELIMITER ;
+
+# enunciats de funcions
+
+-- Exercici 1
+CREATE FUNCTION spData (data DATE) RETURNS char(10)
+BEGIN
+	RETURN DATE_FORMAT(data,"%d-%m-%Y");
+END
+
 -- Exercici 6
 DROP FUNCTION IF EXISTS spCategoria;
 
