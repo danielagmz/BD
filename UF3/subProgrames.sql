@@ -82,6 +82,24 @@ BEGIN
 	RETURN DATE_FORMAT(data,"%d-%m-%Y");
 END
 
+-- Exercici 2
+DROP FUNCTION IF EXISTS spPotencia;
+CREATE FUNCTION spPotencia (pbase INT,pexp INT) RETURNS INT
+BEGIN
+    DECLARE res INT DEFAULT 1;
+    DECLARE cont INT DEFAULT 0;
+
+    IF(pexp!=0) THEN
+        WHILE(cont < pexp) DO
+            SET res=res*pbase;
+            SET cont=cont+1;    
+        END WHILE;
+    ELSE
+        SET res=1;
+    END IF;
+	RETURN res;
+END
+
 -- Exercici 6
 DROP FUNCTION IF EXISTS spCategoria;
 
@@ -109,7 +127,47 @@ DELIMITER ;
 
 -- Exercici 7
 SELECT empleat_id,nom,TIMESTAMPDIFF(YEAR, data_contractacio, CURDATE()) anys_treballats,spCategoria(empleat_id) categoria
-	FROM empleats
+	FROM empleats;
 
+-- Exercici 8
+use rrhh;
+DROP FUNCTION IF EXISTS spEdat;
 
+DELIMITER //
+CREATE FUNCTION spEdat(pdata Date) RETURNS INT
+DETERMINISTIC 
+BEGIN
+    DECLARE edat INT;
+
+    IF (pdata > CURDATE()) THEN  
+        SET edat = 0;
+    ELSE
+        SELECT TIMESTAMPDIFF(YEAR, pdata, CURDATE())
+        INTO edat;
+    END IF;
+
+    RETURN edat;
+END //
+DELIMITER ;
  
+--  Exercici 9 
+
+DROP FUNCTION IF EXISTS spDirectors;
+
+DELIMITER //
+CREATE FUNCTION spDirectors()  RETURNS INT
+DETERMINISTIC 
+BEGIN
+    DECLARE num INT;
+
+    SELECT COUNT(DISTINCT id_cap)  INTO num
+        FROM empleats;
+
+    RETURN num;
+END //
+DELIMITER ;
+
+SELECT spDirectors()
+
+
+
