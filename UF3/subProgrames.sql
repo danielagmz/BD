@@ -98,7 +98,45 @@ BEGIN
         SET res=1;
     END IF;
 	RETURN res;
+END;
+
+-- Exercici 4
+DROP FUNCTION IF EXISTS spPringat;
+use rrhh;
+DELIMITER //
+CREATE FUNCTION spPringat(pdepCodi INT) RETURNS INT
+NOT DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE vcodiEmp INT DEFAULT -1;
+
+    IF(spComprovarDep(pdepCodi)) THEN
+        SELECT empleat_id INTO vcodiEmp
+            FROM empleats
+        WHERE departament_id=pdepCodi AND salari=(SELECT MIN(salari)
+                                                    FROM empleats 
+                                                WHERE departament_id =pdepCodi)
+        LIMIT 1;
+    END IF;
+
+    RETURN vcodiEmp;
 END
+// DELIMITER;
+
+SELECT spPringat(20)
+
+DELIMITER //
+CREATE FUNCTION spComprovarDep(pdepId INT) RETURNS BOOLEAN
+NOT DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE depExisteix BOOLEAN DEFAULT FALSE;
+
+    SELECT EXISTS(SELECT * FROM departaments WHERE departament_id = pdepId) INTO depExisteix;
+
+    RETURN depExisteix;
+
+END
+// DELIMITER ;
+
 
 -- Exercici 6
 DROP FUNCTION IF EXISTS spCategoria;

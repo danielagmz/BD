@@ -104,7 +104,7 @@ BEGIN
 
 	INSERT INTO categories(codi,nom,quantitat)
     VALUES  ("C1","Auxiliar",vC1),
-	    ("C2","Oficial de Segona",vC2),
+	    	("C2","Oficial de Segona",vC2),
             ("C3","Oficial de Primera",vC3),
             ("C4","Que es jubili!",vC4);
 	CLOSE emp;
@@ -154,3 +154,147 @@ BEGIN
 	
 END 
 // DELIMITER;
+
+-- Exercici 4
+CREATE TABLE pringats (
+		empleat_id INT,
+		departament_id INT,
+
+		CONSTRAINT PK_PRINGATS PRIMARY KEY (departament_id, empleat_id)
+);
+
+DROP PROCEDURE IF EXISTS spTaulapringats;
+
+DELIMITER // 
+CREATE PROCEDURE spTaulapringats () 
+BEGIN 
+
+	DECLARE vDep INT;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE deps CURSOR FOR (SELECT DISTINCT departament_id 
+									FROM empleats
+									WHERE departament_id IS NOT NULL);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+	SET fi_curs=TRUE;
+	END;
+
+	TRUNCATE TABLE pringats;
+		
+	OPEN deps;
+	FETCH deps INTO vDep;
+	
+	WHILE NOT fi_curs DO
+
+		INSERT INTO pringats(empleat_id,departament_id)
+			VALUES(spPringat(vDep),vDep);
+
+		FETCH deps INTO vDep;
+
+	END WHILE;
+
+	CLOSE deps;
+
+END 
+// DELIMITER ;
+
+-- Exercici 5
+
+DROP PROCEDURE IF EXISTS spTaulapringats;
+
+DELIMITER // 
+CREATE PROCEDURE spTaulapringats() 
+BEGIN 
+
+	DECLARE vDep INT;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE deps CURSOR FOR (SELECT DISTINCT departament_id 
+									FROM empleats
+									WHERE departament_id IS NOT NULL);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+	SET fi_curs=TRUE;
+	END;
+		
+	OPEN deps;
+	FETCH deps INTO vDep;
+	
+	WHILE NOT fi_curs DO
+
+		IF(spPringat(vDep) NOT IN(SELECT empleat_id FROM pringats)) THEN
+			INSERT INTO pringats(empleat_id,departament_id)
+				VALUES(spPringat(vDep),vDep);
+		END IF;
+
+		FETCH deps INTO vDep;
+
+	END WHILE;
+
+	CLOSE deps;
+
+END 
+// DELIMITER ;
+
+-- Exercici 7
+
+ALTER TABLE feines
+	ADD COLUMN qt_historicTreballadors INT;
+
+
+DROP PROCEDURE IF EXISTS spQtFeinesHist;
+
+DELIMITER // 
+CREATE PROCEDURE spQtFeinesHist() 
+BEGIN 
+
+	DECLARE vCodif CHAR(10);
+	DECLARE vCountHistoric INT DEFAULT 0;
+	DECLARE vCountActual INT DEFAULT 0;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE cursfeines CURSOR FOR (SELECT feina_codi FROM feines);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+	SET fi_curs=TRUE;
+	END;
+		
+	OPEN cursfeines;
+	FETCH cursfeines INTO vCodif;
+	
+	WHILE NOT fi_curs DO
+		-- contar el historico de esa feina codi
+		SELECT COUNT(empleat_id ) INTO vCountHistoric
+			FROM historial_feines
+		WHERE feina_codi=vCodif;
+
+		/* contar los empleados actuales en esa profesion que no 
+		   esten en el historial para evitar contarlos de nuevo*/
+		
+
+		SELECT COUNT(empleat_id) INTO vCountActual
+			FROM empleats e
+		WHERE feina_codi=vCodif AND 
+		(e.empleat_id, feina_codi) NOT IN (SELECT empleat_id, feina_codi FROM historial_feines);
+		
+		-- update de la tabla y reinicio de contadores
+		UPDATE feines
+			SET qt_historicTreballadors=vCountHistoric+vCountActual
+		WHERE feina_codi=vCodif;
+
+		SET vCountHistoric=0;
+		SET vCountActual=0;
+
+		FETCH cursfeines INTO vCodif;
+
+	END WHILE;
+
+	CLOSE cursfeines;
+
+END 
+// DELIMITER ;
+
+CALL spQtFeinesHist();
+
+SELECT * FROM feines;
