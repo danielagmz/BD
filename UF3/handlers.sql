@@ -110,3 +110,47 @@ BEGIN
 	CLOSE emp;
 END //
 DELIMITER ;
+
+use rrhh;
+
+-- Exercici 3
+
+ALTER TABLE departaments
+	ADD COLUMN salari_avg DECIMAL(8,2);
+DROP PROCEDURE IF EXISTS spAvgSalary;
+DELIMITER //
+CREATE PROCEDURE spAvgSalary()
+BEGIN
+	DECLARE vDep INT;
+	DECLARE vSalary DECIMAL(8,2) DEFAULT 0;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE deps CURSOR FOR (SELECT DISTINCT departament_id 
+									FROM empleats
+									WHERE departament_id IS NOT NULL);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+	SET fi_curs=TRUE;
+	END;
+		
+	OPEN deps;
+	FETCH deps INTO vDep;
+	
+	WHILE NOT fi_curs DO
+
+		SELECT AVG(salari) INTO vSalary
+			FROM empleats
+		WHERE departament_id = vDep;
+		
+		UPDATE departaments
+			SET salari_avg = vSalary
+		WHERE departament_id=vDep;
+		
+		FETCH deps INTO vDep;
+
+	END WHILE;	
+
+	CLOSE deps;
+	
+END 
+// DELIMITER;
