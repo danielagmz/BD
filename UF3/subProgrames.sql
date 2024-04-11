@@ -1,5 +1,13 @@
 # enunciats de procediments
 
+-- Exercici 1
+DELIMITER //
+CREATE PROCEDURE spObtenirDataUsuari ()
+BEGIN
+    SELECT NOW(),USER()
+END
+// DELIMITER ;
+
 -- Exercici 2
 DROP PROCEDURE IF EXISTS spSwapSou;
 DELIMITER //
@@ -73,6 +81,69 @@ BEGIN
     WHERE empleat_id = pEmpcodi;
 END
 // DELIMITER ;
+
+-- Exercici 7
+
+CREATE TABLE
+    logs_usuaris (
+        usuari VARCHAR(100),
+        data DATETIME,
+    );
+
+-- Exercici 8
+DELIMITER //
+CREATE PROCEDURE  spInserirlogs()
+BEGIN
+    INSERT INTO logs_usuaris
+    SELECT CURRENT_USER(), NOW();
+END
+// DELIMITER ;
+
+-- Exercici 9
+
+DELIMITER //
+CREATE PROCEDURE  spAfegirDep(pCodiDep INT,pNomDep VARCHAR(30),pCodiLoc INT)
+BEGIN
+    IF (spComprovarLoc(pCodiLoc)) THEN
+        INSERT INTO departaments(departament_id,nom,localitzacio_id)
+        VALUES(pCodiDep,pNomDep,pCodiLoc);
+    ELSE
+        INSERT INTO departaments(departament_id,nom,localitzacio_id)
+        VALUES(pCodiDep,pNomDep,NULL);
+    END IF;
+
+END
+// DELIMITER ;
+
+CALL spAfegirDep(1,'sapa',1);
+
+DELIMITER //
+CREATE FUNCTION spComprovarLoc(pLocId INT) RETURNS BOOLEAN
+NOT DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE locExisteix BOOLEAN DEFAULT FALSE;
+
+    SELECT EXISTS(SELECT * FROM localitzacions WHERE localitzacio_id = pLocId) INTO locExisteix;
+
+    RETURN locExisteix;
+
+END
+// DELIMITER ;
+
+-- Exercici 10
+DROP PROCEDURE IF EXISTS spNomCognom;
+-- no retorna. como hacerlo retornar
+DELIMITER //
+CREATE PROCEDURE spNomCognom (IN pEmpcodi INT,OUT vNom VARCHAR(20),OUT vCognom VARCHAR(25))
+BEGIN
+    SELECT nom,cognoms INTO vNom,vCognom 
+        FROM empleats
+    WHERE empleat_id=pEmpcodi;
+
+END
+// DELIMITER ;
+
+CALL spNomCognom(100)
 
 # enunciats de funcions
 
@@ -206,6 +277,8 @@ END //
 DELIMITER ;
 
 SELECT spDirectors()
+
+
 
 
 
