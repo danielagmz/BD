@@ -237,6 +237,48 @@ BEGIN
 END 
 // DELIMITER ;
 
+-- Exercici 6
+use rrhh;
+CREATE TABLE empleats_segregats(
+	id_empleat	INT,
+	mes			INT
+);
+
+DROP PROCEDURE IF EXISTS spSepararEmpleats;
+DELIMITER // 
+CREATE PROCEDURE spSepararEmpleats() 
+BEGIN 
+	DECLARE vEmp INT;
+	DECLARE vMesCont INT;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE emps CURSOR FOR (SELECT empleat_id,DATE_FORMAT(data_contractacio,'%m') from empleats);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+	SET fi_curs=TRUE;
+	END;
+		
+	OPEN emps;
+	FETCH emps INTO vEmp,vMesCont ;
+	
+	WHILE NOT fi_curs DO
+
+		INSERT INTO empleats_segregats(id_empleat,mes)
+			VALUES(vEmp,vMesCont);
+
+		FETCH emps INTO vEmp,vMesCont;
+	END WHILE;
+		
+	CLOSE emps;
+
+END
+// DELIMITER ;
+
+CALL spSepararEmpleats();
+
+SELECT *
+	FROM empleats_segregats
+
 -- Exercici 7
 
 ALTER TABLE feines
@@ -292,9 +334,110 @@ BEGIN
 
 	CLOSE cursfeines;
 
-END 
-// DELIMITER ;
+END;
 
-CALL spQtFeinesHist();
+-- Exercici 8
 
-SELECT * FROM feines;
+CREATE TABLE factura (
+		numf INT (8) PRIMARY KEY,
+		data DATETIME,
+		import DECIMAL(8, 2)
+) Engine = InnoDB;
+
+CREATE TABLE linia_factura (
+		numf INT (8),
+		linia INT (4),
+		article VARCHAR(2),
+		descripcio VARCHAR(100),
+		unitats INT (4),
+		preuU DECIMAL(5, 2),
+		PRIMARY KEY (numf, linia),
+		FOREIGN KEY (numf) REFERENCES factura (numf)
+) Engine InnoDB;
+
+INSERT INTO
+	factura (numf, data)
+VALUES
+	(1, '2012-04-30');
+
+INSERT INTO
+	linia_factura
+VALUES
+	(1, 1, '01', 'Pistons Wiseco', 2, 120);
+
+INSERT INTO
+	linia_factura
+VALUES
+	(1, 2, '02', 'Culata Scream Eagle', 1, 240);
+
+INSERT INTO
+	factura (numf, data)
+VALUES
+	(2, '2012-03-21');
+
+INSERT INTO
+	linia_factura
+VALUES
+	(2, 1, '03', 'Arbol de levas', 3, 221.5);
+
+INSERT INTO
+	factura (numf, data)
+VALUES
+	(3, '2012-04-28');
+
+INSERT INTO
+	linia_factura
+VALUES
+	(3, 1, '04', 'Centralita ThunderMax', 3, 355);
+
+INSERT INTO
+	linia_factura
+VALUES
+	(3, 2, '05', 'Filtro Aire K&N', 2, 60);
+
+INSERT INTO
+	linia_factura
+VALUES
+	(3, 3, '01', 'Pistons Wiseco', 4, 120);
+
+DROP PROCEDURE IF EXISTS spCalcularImport;
+
+DELIMITER // 
+CREATE PROCEDURE spCalcularImport() 
+BEGIN 
+	
+	DECLARE vFact INT DEFAULT 0;
+	DECLARE vTot DECIMAL(10,2) DEFAULT 0;
+	DECLARE fi_curs BOOLEAN DEFAULT FALSE;
+	DECLARE facturesCurs CURSOR FOR (SELECT numf FROM factura);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	BEGIN
+		SET fi_curs=TRUE;
+	END;
+		
+	OPEN facturesCurs;
+	FETCH facturesCurs INTO vFact;
+	
+	WHILE NOT fi_curs DO
+
+		SELECT SUM(preuU*unitats) INTO vTot
+			FROM linia_factura
+		WHERE numf=vFact;
+
+		UPDATE factura
+				SET import=vTot
+		WHERE numf=vFact;
+
+		SET vTot=0;
+
+		FETCH facturesCurs INTO vFact;
+	END WHILE;
+	CLOSE facturesCurs;
+
+END
+DELIMITER // 
+
+CALL spCalcularImport();
+
+SELECT * FROM factura;
