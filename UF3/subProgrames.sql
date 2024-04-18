@@ -145,6 +145,61 @@ END
 
 CALL spNomCognom(100)
 
+DROP PROCEDURE IF EXISTS spModNomCognom;
+-- no retorna. como hacerlo retornar
+DELIMITER //
+CREATE PROCEDURE spModNomCognom (IN pEmpcodi INT,IN pNom VARCHAR(20),IN pCognom VARCHAR(25))
+BEGIN
+
+    IF (pNom IS NOT NULL AND pCognom IS NOT NULL) THEN
+        UPDATE empleats
+            SET nom = pNom,
+                cognoms = pCognom
+        WHERE empleat_id=pEmpcodi;
+    END IF;
+
+END
+// DELIMITER ;
+
+DROP PROCEDURE IF EXISTS spRegLog;
+-- no retorna. como hacerlo retornar
+DELIMITER //
+CREATE PROCEDURE spRegLog (IN pEmpcodi INT,IN ptaula VARCHAR(20),IN pVpk VARCHAR(25))
+BEGIN
+
+    INSERT INTO logs_usuaris(usuari,data,taula,valor_pk)
+        VALUES(user(),now(),ptaula,pVpk);
+END
+// DELIMITER ;
+
+DROP PROCEDURE IF EXISTS spEliminarDeps;
+-- no retorna. como hacerlo retornar
+DELIMITER //
+CREATE PROCEDURE spEliminarDeps (IN pCodi INT)
+BEGIN
+
+    DELETE FROM departaments
+    WHERE departament_id=pCodi;
+
+    /* sol clase -> ROW_COUNT() > 0 como condicion retorna si la ultima instruccion ha modificado algun registro  */
+
+    IF (!spComprovarDep(pCodi)) THEN 
+        CALL spRegLog ('departaments', 'ELIMINAR', pCodi);
+    END IF;
+
+    -- petara por empleats
+
+    UPDATE empleats
+        SET id_cap=NULL -- esto no funciona 
+    WHERE empleat_id IN (SELECT empleat_id FROM empleats WHERE departament_id=pCodi)
+
+    -- petara por historial_feines
+
+END
+// DELIMITER ;
+
+
+
 # enunciats de funcions
 
 -- Exercici 1
