@@ -172,31 +172,31 @@ BEGIN
 END
 // DELIMITER ;
 
-DROP PROCEDURE IF EXISTS spEliminarDeps;
--- no retorna. como hacerlo retornar
-DELIMITER //
-CREATE PROCEDURE spEliminarDeps (IN pCodi INT)
-BEGIN
+-- DROP PROCEDURE IF EXISTS spEliminarDeps;
+-- -- no retorna. como hacerlo retornar
+-- DELIMITER //
+-- CREATE PROCEDURE spEliminarDeps (IN pCodi INT)
+-- BEGIN
 
-    DELETE FROM departaments
-    WHERE departament_id=pCodi;
+--     DELETE FROM departaments
+--     WHERE departament_id=pCodi;
 
-    /* sol clase -> ROW_COUNT() > 0 como condicion retorna si la ultima instruccion ha modificado algun registro  */
+--     /* sol clase -> ROW_COUNT() > 0 como condicion retorna si la ultima instruccion ha modificado algun registro  */
 
-    IF (!spComprovarDep(pCodi)) THEN 
-        CALL spRegLog ('departaments', 'ELIMINAR', pCodi);
-    END IF;
+--     IF (!spComprovarDep(pCodi)) THEN 
+--         CALL spRegLog ('departaments', 'ELIMINAR', pCodi);
+--     END IF;
 
-    -- petara por empleats
+--     -- petara por empleats
 
-    UPDATE empleats
-        SET id_cap=NULL -- esto no funciona 
-    WHERE empleat_id IN (SELECT empleat_id FROM empleats WHERE departament_id=pCodi)
+--     UPDATE empleats
+--         SET id_cap=NULL -- esto no funciona 
+--     WHERE empleat_id IN (SELECT empleat_id FROM empleats WHERE departament_id=pCodi)
 
-    -- petara por historial_feines
+--     -- petara por historial_feines
 
-END
-// DELIMITER ;
+-- END
+-- // DELIMITER ;
 
 
 
