@@ -88,3 +88,81 @@ WHERE empleat_id=1000;
 
 SELECT * FROM empleats;
 SELECT * FROM auditoria_taules
+
+-- Exercici 4
+
+DROP TRIGGER IF EXISTS trg_salari_empleats;
+DELIMITER //
+CREATE TRIGGER trg_salari_empleats BEFORE UPDATE ON empleats FOR EACH ROW
+BEGIN
+    DECLARE vSalariMin DECIMAL(8,2);
+    DECLARE vSalariMax DECIMAL(8,2);
+
+    SELECT salari_min,salari_max INTO vSalariMin,vSalariMax
+    FROM feines
+    WHERE feina_codi = NEW.feina_codi;
+
+
+        IF(NEW.salari < vSalariMin OR NEW.salari > vSalariMax) THEN
+            SET NEW.salari = OLD.salari;
+
+    END IF;
+END // DELIMITER;
+
+DELIMITER //
+CREATE TRIGGER trg_salari_empleats_Insert BEFORE INSERT ON empleats FOR EACH ROW
+BEGIN
+    DECLARE vSalariMin DECIMAL(8,2);
+    DECLARE vSalariMax DECIMAL(8,2);
+
+    SELECT salari_min,salari_max INTO vSalariMin,vSalariMax
+    FROM feines
+    WHERE feina_codi = NEW.feina_codi;
+
+    IF(NEW.salari < vSalariMin OR NEW.salari > vSalariMax) THEN
+            SET NEW.salari = vSalariMin;
+        SIGNAL SQLSTATE '43000' SET MESSAGE_TEXT = "El salari introduit no compleix el rang de salari de la feina codi";
+    END IF;
+
+END
+// DELIMITER ;
+
+-- Exercici 5
+
+
+ALTER TABLE departaments
+    ADD COLUMN num_empleats INT DEFAULT 0;
+
+DELIMITER //
+CREATE FUNCTION spComptarEmpleats(depCodi INT) RETURNS INT
+BEGIN
+
+    DECLARE numEmpleats INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO numEmpleats
+    FROM empleats
+    WHERE departament_id = depCodi;
+
+    RETURN numEmpleats;
+END
+
+// DELIMITER;
+
+DELIMITER //
+CREATE TRIGGER contarEmpleats AFTER INSERT ON empleats FOR EACH ROW
+BEGIN
+    
+    UPDATE departaments
+        SET num_empleats=spComptarEmpleats(NEW.departament_id)
+    WHERE departament_id=NEW.departament_id;
+END
+// DELIMITER;
+
+-- SELECT * FROM empleats
+
+-- INSERT INTO empleats(empleat_id,cognoms,email,data_contractacio,feina_codi,departament_id)
+--     VALUES (1002,"test","a@email.com","2022-01-01","AC_MGR",1);
+
+-- DELETE FROM empleats
+-- WHERE empleat_id > 211
+
